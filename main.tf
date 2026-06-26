@@ -54,7 +54,6 @@ module "network" {
 module "security_group" {
   source              = "./modules/security_group"
   vpc_id              = module.network.vpc_id
-  allowed_cidr_blocks = var.allowed_cidr_blocks
 
   security_groups = {
     bastion_sg = {
@@ -62,7 +61,7 @@ module "security_group" {
       ingress_ports           = [22]
       type                    = "ingress"
       protocol                = "tcp"
-      allowed_cidr_blocks     = var.allowed_cidr_blocks
+      allowed_cidr_blocks     = ["178.212.0.0/16"]
       allowed_security_groups = []
     }
     lb_health_check_sg = {
@@ -70,7 +69,7 @@ module "security_group" {
       ingress_ports           = [80, 443]
       type                    = "ingress"
       protocol                = "tcp"
-      allowed_cidr_blocks     = var.allowed_cidr_blocks
+      allowed_cidr_blocks     = ["0.0.0.0/0"]
       allowed_security_groups = []
     }
   }
