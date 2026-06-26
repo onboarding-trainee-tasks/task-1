@@ -2,7 +2,7 @@ data "aws_ami" "ubuntu" {
   most_recent = true
 
   filter {
-    name = "name"
+    name   = "name"
     values = ["ubuntu/images/hvm-ssd-gp3/ubuntu-noble-24.04-amd64-server-*"]
   }
 
@@ -15,37 +15,37 @@ data "aws_ami" "ubuntu" {
 # }
 
 module "network" {
-  source = "./modules/network"
+  source   = "./modules/network"
   vpc_cidr = "10.10.0.0/16"
+
+  azs      = ["euc1-az1", "euc1-az2", "euc1-az3"]
   subnets = {
-    public_subnet_a = {
+    public_subnet_1 = {
       cidr = "10.10.1.0/24"
-      az   = "euc1-az1"
       type = "public"
     }
-    public_subnet_b = {
+    public_subnet_2 = {
       cidr = "10.10.2.0/24"
-      az   = "euc1-az2"
       type = "public"
     }
-    private_subnet_a = {
+    private_subnet_1 = {
       cidr = "10.10.3.0/24"
-      az   = "euc1-az1"
       type = "private"
     }
-    private_subnet_b = {
+    private_subnet_2 = {
       cidr = "10.10.4.0/24"
-      az   = "euc1-az2"
       type = "private"
     }
-    database_subnet_a = {
+    # private_subnet_3 = {
+    #   cidr = "10.10.7.0/24"
+    #   type = "private"
+    # }
+    database_subnet_1 = {
       cidr = "10.10.5.0/24"
-      az   = "euc1-az1"
       type = "database"
     }
-    database_subnet_b = {
+    database_subnet_2 = {
       cidr = "10.10.6.0/24"
-      az   = "euc1-az2"
       type = "database"
     }
   }
