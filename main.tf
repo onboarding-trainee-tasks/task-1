@@ -18,7 +18,7 @@ module "network" {
   source   = "./modules/network"
   vpc_cidr = "10.10.0.0/16"
 
-  azs      = ["euc1-az1", "euc1-az2", "euc1-az3"]
+  azs = ["euc1-az1", "euc1-az2", "euc1-az3"]
   subnets = {
     public_subnet_1 = {
       cidr = "10.10.1.0/24"
@@ -51,12 +51,33 @@ module "network" {
   }
 }
 
+module "security_group" {
+  source              = "./modules/security_group"
+  vpc_id              = module.network.vpc_id
+  allowed_cidr_blocks = var.allowed_cidr_blocks
+
+  security_groups = {
+    bastion_sg = {
+      name                    = "bastion_sg"
+      ingress_ports           = [22]
+      type                    = "ingress"
+      protocol                = "tcp"
+      allowed_cidr_blocks     = var.allowed_cidr_blocks
+      allowed_security_groups = []
+    }
+    lb_health_check_sg = {
+      name                    = "lb_health_check_sg"
+      ingress_ports           = [80, 443]
+      type                    = "ingress"
+      protocol                = "tcp"
+      allowed_cidr_blocks     = var.allowed_cidr_blocks
+      allowed_security_groups = []
+    }
+  }
+}
+
 module "instance" {
   source = "./modules/instance"
   # ...
 }
 
-module "security_group" {
-  source = "./modules/security_group"
-  # ...
-}
