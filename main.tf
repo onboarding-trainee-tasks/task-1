@@ -52,8 +52,8 @@ module "network" {
 }
 
 module "security_group" {
-  source              = "./modules/security_group"
-  vpc_id              = module.network.vpc_id
+  source = "./modules/security_group"
+  vpc_id = module.network.vpc_id
 
   security_groups = {
     bastion_sg = {
