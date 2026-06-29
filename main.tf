@@ -1,14 +1,3 @@
-data "aws_ami" "ubuntu" {
-  most_recent = true
-
-  filter {
-    name   = "name"
-    values = ["ubuntu/images/hvm-ssd-gp3/ubuntu-noble-24.04-amd64-server-*"]
-  }
-
-  owners = ["099720109477"] # Canonical
-}
-
 # resource "aws_instance" "bastion" {
 #   ami           = data.aws_ami.ubuntu.id
 #   instance_type = "t3.micro"
@@ -75,8 +64,12 @@ module "security_group" {
   }
 }
 
-module "instance" {
+module "bastion_instance" {
   source = "./modules/instance"
-  # ...
+  instance_name = "bastion"
+  instance_type = "t3.micro"
+  volume_size = 8
+  subnet_id = module.network.public_subnet_ids[0]
+  ssh_key_path = "C:\\Onboarding\\.ssh\\terraform-ssh-key.pub"
+  security_group_ids = [module.security_group.sg_ids["bastion_sg"]]
 }
-
