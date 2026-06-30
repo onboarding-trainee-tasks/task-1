@@ -9,7 +9,7 @@ variable security_groups {
     name          = string
     tcp_ingress_ports = list(number)
     udp_ingress_ports = list(number)
-    allowed_cidr_blocks = string
+    allowed_cidr_blocks = list(string)
     allowed_security_groups = list(string)
   }))
 }

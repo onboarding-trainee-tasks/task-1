@@ -43,15 +43,15 @@ module "security_group" {
     bastion_sg = {
       name                    = "bastion_sg"
       tcp_ingress_ports       = [22]
-      udp_ingress_ports       = [22]
-      allowed_cidr_blocks     = "178.212.0.0/16"
+      udp_ingress_ports       = []
+      allowed_cidr_blocks     = var.allowed_cidr_blocks
       allowed_security_groups = []
     }
     lb_health_check_sg = {
       name                    = "lb_health_check_sg"
       tcp_ingress_ports       = [80, 443]
       udp_ingress_ports       = []
-      allowed_cidr_blocks     = "0.0.0.0/0"
+      allowed_cidr_blocks     = ["0.0.0.0/0"]
       allowed_security_groups = []
     }
   }

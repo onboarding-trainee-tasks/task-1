@@ -18,29 +18,34 @@ resource "aws_security_group" "this" {
 locals {
   tcp_rules = flatten([
     for sg_name, sg in var.security_groups : [
-      for port in sg.tcp_ingress_ports : {
-        sg_name    = sg_name
-        name       = sg.name
-        protocol   = "tcp"
-        port       = port
-        cidrs      = sg.allowed_cidr_blocks
-      }
+      for port in sg.tcp_ingress_ports : [
+        for cidr in sg.allowed_cidr_blocks : {
+          sg_name    = sg_name
+          name       = sg.name
+          protocol   = "tcp"
+          port       = port
+          cidr       = cidr
+        }
+      ]
     ]
   ])
   udp_rules = flatten([
     for sg_name, sg in var.security_groups : [
-      for port in sg.udp_ingress_ports : {
-        sg_name    = sg_name
-        name       = sg.name
-        protocol   = "udp"
-        port       = port
-        cidrs      = sg.allowed_cidr_blocks
-      }
+      for port in sg.udp_ingress_ports : [
+        for cidr in sg.allowed_cidr_blocks : {
+          sg_name    = sg_name
+          name       = sg.name
+          protocol   = "udp"
+          port       = port
+          cidr       = cidr
+        }
+      ]
     ]
   ])
+  
   sg_rules_map = {
     for idx, rule in concat(local.tcp_rules, local.udp_rules) :
-    "${rule.sg_name}-${rule.protocol}-${rule.port}" => rule
+    "${rule.sg_name}-${rule.protocol}-${rule.port}-${rule.cidr}" => rule
   }
 }
 
@@ -51,5 +56,5 @@ resource "aws_vpc_security_group_ingress_rule" "this" {
   ip_protocol       = each.value.protocol
   from_port         = each.value.port
   to_port           = each.value.port
-  cidr_ipv4         = each.value.cidrs
+  cidr_ipv4         = each.value.cidr
 }
