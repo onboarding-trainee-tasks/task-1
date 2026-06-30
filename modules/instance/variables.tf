@@ -27,3 +27,9 @@ variable "ssh_key_path" {
   description = "The path to the SSH private key for connecting to the instance"
   type        = string
 }
+
+variable "ami_id" {
+  description = "The ID of the AMI to use for the instance"
+  type        = string
+  default     = ""
+}

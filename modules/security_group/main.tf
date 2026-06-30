@@ -16,31 +16,40 @@ resource "aws_security_group" "this" {
 }
 
 locals {
-  sg_rules = flatten([
+  tcp_rules = flatten([
     for sg_name, sg in var.security_groups : [
-      for port in sg.ingress_ports : {
+      for port in sg.tcp_ingress_ports : {
         sg_name    = sg_name
         name       = sg.name
+        protocol   = "tcp"
         port       = port
-        type       = sg.type
-        protocol   = sg.protocol
+        cidrs      = sg.allowed_cidr_blocks
+      }
+    ]
+  ])
+  udp_rules = flatten([
+    for sg_name, sg in var.security_groups : [
+      for port in sg.udp_ingress_ports : {
+        sg_name    = sg_name
+        name       = sg.name
+        protocol   = "udp"
+        port       = port
         cidrs      = sg.allowed_cidr_blocks
       }
     ]
   ])
   sg_rules_map = {
-    for idx, rule in local.sg_rules :
-    "${rule.sg_name}-${rule.port}" => rule
+    for idx, rule in concat(local.tcp_rules, local.udp_rules) :
+    "${rule.sg_name}-${rule.protocol}-${rule.port}" => rule
   }
 }
 
-resource "aws_security_group_rule" "this" {
+resource "aws_vpc_security_group_ingress_rule" "this" {
   for_each = local.sg_rules_map
 
   security_group_id = aws_security_group.this[each.value.sg_name].id
-  type              = each.value.type
+  ip_protocol       = each.value.protocol
   from_port         = each.value.port
   to_port           = each.value.port
-  protocol          = each.value.protocol
-  cidr_blocks       = each.value.cidrs
+  cidr_ipv4         = each.value.cidrs
 }
