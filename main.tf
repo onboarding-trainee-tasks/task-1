@@ -47,9 +47,16 @@ module "security_group" {
       allowed_cidr_blocks     = var.allowed_cidr_blocks
       allowed_security_groups = []
     }
+    internal_ssh_sg = {
+      name                    = "internal_ssh_sg"
+      tcp_ingress_ports       = [22]
+      udp_ingress_ports       = []
+      allowed_cidr_blocks     = []
+      allowed_security_groups = ["bastion_sg"]
+    }
     lb_health_check_sg = {
       name                    = "lb_health_check_sg"
-      tcp_ingress_ports       = [80, 443]
+      tcp_ingress_ports       = [80]
       udp_ingress_ports       = []
       allowed_cidr_blocks     = ["0.0.0.0/0"]
       allowed_security_groups = []
@@ -95,7 +102,8 @@ module "asg" {
   max_size            = 3
   desired_capacity    = 2
   lb_target_group_arn = module.alb.target_group_arn
-  security_group_ids  = [module.security_group.sg_ids["lb_health_check_sg"]]
+  security_group_ids  = [module.security_group.sg_ids["lb_health_check_sg"], module.security_group.sg_ids["internal_ssh_sg"]]
+  key_name            = module.bastion_instance.key_name
 }
 
 ### us-east-1

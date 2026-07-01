@@ -2,6 +2,7 @@ resource "aws_launch_template" "this" {
   instance_type = var.instance_type
   image_id      = var.image_id
   vpc_security_group_ids = var.security_group_ids
+  key_name = var.key_name
 
   block_device_mappings {
     device_name = "/dev/sdf"

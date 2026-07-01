@@ -18,6 +18,11 @@ variable "security_group_ids" {
   type        = list(string)
 }
 
+variable "key_name" {
+  description = "The name of the key pair to use for the instances."
+  type        = string
+}
+
 variable "min_size" {
   description = "The minimum size of the ASG."
   type        = number
