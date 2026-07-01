@@ -10,7 +10,7 @@ resource "aws_subnet" "this" {
 
   vpc_id = aws_vpc.this.id
   cidr_block = each.value.cidr
-  availability_zone_id = var.azs[(tonumber(regex("[0-9]+", each.key)) - 1) % length(var.azs)]
+  availability_zone = var.azs[(tonumber(regex("[0-9]+", each.key)) - 1) % length(var.azs)]
 
   map_public_ip_on_launch = each.value.type == "public"
 
@@ -70,6 +70,11 @@ resource "aws_route_table_association" "private" {
 
 resource "aws_route_table" "database" {
   vpc_id = aws_vpc.this.id
+
+  route {
+    cidr_block     = "0.0.0.0/0"
+    nat_gateway_id = aws_nat_gateway.this.id
+  }
 
   tags = {
     Name = "${aws_vpc.this.tags["Name"]}-database-rt"

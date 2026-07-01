@@ -2,7 +2,7 @@ module "network" {
   source   = "./modules/network"
   vpc_cidr = "10.10.0.0/16"
 
-  azs = ["euc1-az1", "euc1-az2", "euc1-az3"]
+  azs = ["eu-central-1a", "eu-central-1b", "eu-central-1c"]
   subnets = {
     public_subnet_1 = {
       cidr = "10.10.1.0/24"
@@ -74,7 +74,29 @@ module "bastion_instance" {
   instance_type      = "t3.micro"
   volume_size        = 8
   subnet_id          = module.network.public_subnet_ids[0]
-  ssh_key_path       = "C:\\Onboarding\\.ssh\\terraform-ssh-key.pub"
+  ssh_key_path       = var.ssh_key_path
   security_group_ids = [module.security_group.sg_ids["bastion_sg"]]
   ami_id             = data.aws_ami.ubuntu.id
 }
+
+module "alb" {
+  source = "./modules/alb"
+  security_group_id = [module.security_group.sg_ids["lb_health_check_sg"]]
+  subnet_ids        = module.network.public_subnet_ids
+  vpc_id            = module.network.vpc_id
+}
+
+module "asg" {
+  source = "./modules/asg"
+  image_id            = data.aws_ami.ubuntu.id
+  instance_type       = "t3.micro"
+  vpc_zone_identifier = module.network.private_subnet_ids
+  min_size            = 2
+  max_size            = 3
+  desired_capacity    = 2
+  lb_target_group_arn = module.alb.target_group_arn
+  security_group_ids  = [module.security_group.sg_ids["lb_health_check_sg"]]
+}
+
+### us-east-1
+### s3 encryption
