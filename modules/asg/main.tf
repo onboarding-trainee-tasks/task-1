@@ -1,20 +1,10 @@
 resource "aws_launch_template" "this" {
-  instance_type = var.instance_type
-  image_id      = var.image_id
+  instance_type          = var.instance_type
+  image_id               = var.image_id
   vpc_security_group_ids = var.security_group_ids
-  key_name = var.key_name
+  key_name               = var.key_name
 
-  block_device_mappings {
-    device_name = "/dev/sdf"
-
-    ebs {
-      volume_size = 20
-      volume_type = "gp3"
-      delete_on_termination = true
-    }
-  }
-
-  # user_data...
+  user_data = filebase64(var.user_data)
 }
 
 resource "aws_autoscaling_group" "this" {
@@ -28,8 +18,8 @@ resource "aws_autoscaling_group" "this" {
     version = "$Latest"
   }
   vpc_zone_identifier       = var.vpc_zone_identifier
-  health_check_type         = "EC2" ########
-  health_check_grace_period = 300
+  health_check_type         = var.health_check_type
+  health_check_grace_period = var.health_check_grace_period
   force_delete              = true
 
   tag {
@@ -47,4 +37,18 @@ resource "aws_autoscaling_group" "this" {
 resource "aws_autoscaling_attachment" "this" {
   autoscaling_group_name = aws_autoscaling_group.this.name
   lb_target_group_arn    = var.lb_target_group_arn
+}
+
+resource "aws_autoscaling_policy" "cpu_scale_up" {
+  name                   = "cpu_scale-up"
+  policy_type            = "TargetTrackingScaling"
+  autoscaling_group_name = aws_autoscaling_group.this.name
+
+  target_tracking_configuration {
+    predefined_metric_specification {
+      predefined_metric_type = "ASGAverageCPUUtilization"
+    }
+
+    target_value = var.autoscaling_target_value
+  }
 }
