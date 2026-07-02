@@ -61,6 +61,13 @@ module "security_group" {
       allowed_cidr_blocks     = ["0.0.0.0/0"]
       allowed_security_groups = []
     }
+    database_sg = {
+      name                    = "database_sg"
+      tcp_ingress_ports       = [5432]
+      udp_ingress_ports       = []
+      allowed_cidr_blocks     = []
+      allowed_security_groups = ["internal_ssh_sg"]
+    }
   }
 }
 
@@ -106,5 +113,21 @@ module "asg" {
   key_name            = module.bastion_instance.key_name
 }
 
-### us-east-1
-### s3 encryption
+module "rds" {
+  source = "./modules/rds"
+  subnet_ids = module.network.database_subnet_ids
+  security_group_ids = [module.security_group.sg_ids["database_sg"]]
+  db_username = var.db_username
+  db_password = var.db_password
+}
+
+### switch to us-east-1
+### to do:  use secret manager for rds credentials
+###             number internal instances
+###             check if bastion and nat in different public subnets
+###             move data ami to general variables
+####################################################################
+### in future:  ssh switch to aws generated, and then ssm
+###             aurora db cluster
+###             s3 encryption
+###             asg metrics for scaling

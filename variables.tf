@@ -9,3 +9,16 @@ variable "ssh_key_path" {
   type        = string
   default     = "C:\\Onboarding\\.ssh\\terraform-ssh-key.pub"
 }
+
+variable "db_username" {
+  description = "Username for the RDS instance"
+  type        = string
+  default     = "placeholder" # for now w/out secret manager
+}
+
+variable "db_password" {
+  description = "Password for the RDS instance"
+  type        = string
+  sensitive   = true
+  default     = "placeholder" # for now w/out secret manager
+}
