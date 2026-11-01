@@ -8,10 +8,10 @@ resource "aws_launch_template" "this" {
 }
 
 resource "aws_autoscaling_group" "this" {
-  name                      = "my-asg"
-  min_size                  = var.min_size
-  max_size                  = var.max_size
-  desired_capacity          = var.desired_capacity
+  name             = "my-asg"
+  min_size         = var.min_size
+  max_size         = var.max_size
+  desired_capacity = var.desired_capacity
 
   launch_template {
     id      = aws_launch_template.this.id
@@ -28,8 +28,8 @@ resource "aws_autoscaling_group" "this" {
     propagate_at_launch = true
   }
   tag {
-    key = "InstanceGroup"
-    value = "my-asg"
+    key                 = "InstanceGroup"
+    value               = "my-asg"
     propagate_at_launch = true
   }
 }

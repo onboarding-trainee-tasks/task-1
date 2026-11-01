@@ -73,6 +73,6 @@ variable "rds_allocated_storage" {
 
 variable "autoscaling_policy_value" {
   description = "Target value for the metric"
-  type = number
-  default = 80
+  type        = number
+  default     = 80
 }
