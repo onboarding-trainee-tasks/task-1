@@ -1,7 +1,6 @@
 #!/bin/bash
 
 DB_URL="postgresql://${DB_USERNAME}:${DB_PASSWORD}@${DB_ENDPOINT}/${DB_NAME}"
-echo "DB_URL: $DB_URL"
 
 sudo apt install postgresql-client -y
 sudo apt install unzip

@@ -129,15 +129,3 @@ module "asg" {
   key_name            = module.bastion_instance.key_name
   user_data           = "./scripts/ollama-setup.sh"
 }
-
-### switch to us-east-1
-### to do:      pgvector
-###             use secret manager for rds credentials                  +++
-###             number internal instances                               
-###             check if bastion and nat in different public subnets    +++
-###             move data ami to general variables                      +++
-###             asg metrics for scaling                                 +++
-####################################################################
-### in future:  ssh switch to aws generated, and then ssm
-###             aurora db cluster
-###             s3 encryption

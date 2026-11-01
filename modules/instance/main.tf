@@ -1,6 +1,6 @@
 resource "aws_key_pair" "this" {
-  key_name   = "terraform-key"
-  public_key = file("${var.ssh_key_path}")
+  key_name   = "t1-terraform-key"
+  public_key = file(pathexpand(var.ssh_key_path))
 }
 
 resource "aws_instance" "this" {

@@ -24,9 +24,9 @@ variable "allowed_cidr_blocks" {
 }
 
 variable "ssh_key_path" {
-  description = "Path to the SSH key pair for EC2 instances"
+  description = "Path to the public SSH key for Task 1"
   type        = string
-  default     = "C:\\Onboarding\\.ssh\\terraform-ssh-key.pub"
+  default     = "~/.ssh/t1-bastion.pub"
 }
 
 variable "s3_bucket_arn" {

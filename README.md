@@ -53,7 +53,6 @@ These resources/files must exist before `terraform init` or `terraform apply`:
 ```bash
 git clone https://github.com/onboarding-trainee-tasks/task-1.git
 cd task-1
-git switch onb-1-create-infrastructure
 
 terraform init
 terraform fmt
