@@ -41,7 +41,30 @@ variable "desired_capacity" {
   default     = 2
 }
 
+variable "health_check_type" {
+  description = "The service to use for the health checks. Valid values are EC2 and ELB."
+  type        = string
+  default     = "EC2"
+}
+
+variable "health_check_grace_period" {
+  description = "The amount of time, in seconds, after a new instance comes into service that Amazon EC2 Auto Scaling waits before checking its health."
+  type        = number
+  default     = 300
+}
+
 variable "lb_target_group_arn" {
   description = "The ARN of the target group to attach to the ASG."
   type        = string
+}
+
+variable "user_data" {
+  description = "The user data to provide when launching the instances."
+  type        = string
+}
+
+variable "autoscaling_target_value" {
+  description = "Target value for the metric"
+  type = number
+  default = 80
 }

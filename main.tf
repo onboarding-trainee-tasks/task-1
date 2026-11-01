@@ -47,87 +47,85 @@ module "security_group" {
       allowed_cidr_blocks     = var.allowed_cidr_blocks
       allowed_security_groups = []
     }
-    internal_ssh_sg = {
-      name                    = "internal_ssh_sg"
-      tcp_ingress_ports       = [22]
-      udp_ingress_ports       = []
-      allowed_cidr_blocks     = []
-      allowed_security_groups = ["bastion_sg"]
-    }
-    lb_health_check_sg = {
-      name                    = "lb_health_check_sg"
+    alb_sg = {
+      name                    = "alb_sg"
       tcp_ingress_ports       = [80]
       udp_ingress_ports       = []
       allowed_cidr_blocks     = ["0.0.0.0/0"]
       allowed_security_groups = []
+    }
+    ollama_sg = {
+      name                    = "ollama_sg"
+      tcp_ingress_ports       = [22, 11434]
+      udp_ingress_ports       = []
+      allowed_cidr_blocks     = []
+      allowed_security_groups = ["bastion_sg", "alb_sg"]
     }
     database_sg = {
       name                    = "database_sg"
       tcp_ingress_ports       = [5432]
       udp_ingress_ports       = []
       allowed_cidr_blocks     = []
-      allowed_security_groups = ["internal_ssh_sg"]
+      allowed_security_groups = ["ollama_sg", "bastion_sg"]
     }
   }
 }
 
-data "aws_ami" "ubuntu" {
-  most_recent = true
+module "rds" {
+  source             = "./modules/rds"
+  subnet_ids         = module.network.database_subnet_ids
+  security_group_ids = [module.security_group.sg_ids["database_sg"]]
+  db_secret_id       = data.aws_secretsmanager_secret_version.rds_secrets_version
+  db_name            = var.db_name
+  instance_class     = var.rds_instance_class
+  allocated_storage  = var.rds_allocated_storage
+}
 
-  filter {
-    name   = "name"
-    values = ["ubuntu/images/hvm-ssd-gp3/ubuntu-noble-24.04-amd64-server-*"]
-  }
-
-  owners = ["099720109477"] # Canonical
+module "iam" {
+  source        = "./modules/iam"
+  s3_bucket_arn = var.s3_bucket_arn
 }
 
 module "bastion_instance" {
-  source             = "./modules/instance"
-  instance_name      = "bastion"
-  instance_type      = "t3.micro"
-  volume_size        = 8
-  subnet_id          = module.network.public_subnet_ids[0]
-  ssh_key_path       = var.ssh_key_path
-  security_group_ids = [module.security_group.sg_ids["bastion_sg"]]
-  ami_id             = data.aws_ami.ubuntu.id
+  source               = "./modules/instance"
+  instance_name        = "bastion"
+  instance_type        = "t3.micro"
+  volume_size          = 8
+  subnet_id            = module.network.public_subnet_ids[1] # second public subnet for bastion
+  ssh_key_path         = var.ssh_key_path
+  security_group_ids   = [module.security_group.sg_ids["bastion_sg"]]
+  ami_id               = data.aws_ami.ubuntu.id
+  iam_instance_profile = module.iam.iam_instance_profile_name
+
+  user_data = "./scripts/psql.sh"
+
+  # Database details for pgvector setup
+  db_username = module.rds.db_username
+  db_password = module.rds.db_password
+  db_endpoint = module.rds.db_endpoint
+  db_name     = module.rds.db_name
 }
 
 module "alb" {
-  source = "./modules/alb"
-  security_group_id = [module.security_group.sg_ids["lb_health_check_sg"]]
+  source            = "./modules/alb"
+  security_group_id = [module.security_group.sg_ids["alb_sg"]]
   subnet_ids        = module.network.public_subnet_ids
   vpc_id            = module.network.vpc_id
 }
 
 module "asg" {
-  source = "./modules/asg"
+  source              = "./modules/asg"
   image_id            = data.aws_ami.ubuntu.id
-  instance_type       = "t3.micro"
+  instance_type       = "t3.small"
   vpc_zone_identifier = module.network.private_subnet_ids
-  min_size            = 2
-  max_size            = 3
-  desired_capacity    = 2
+
+  min_size                 = var.min_instance_count
+  max_size                 = var.max_instance_count
+  desired_capacity         = var.desired_instance_count
+  autoscaling_target_value = var.autoscaling_policy_value
+
   lb_target_group_arn = module.alb.target_group_arn
-  security_group_ids  = [module.security_group.sg_ids["lb_health_check_sg"], module.security_group.sg_ids["internal_ssh_sg"]]
+  security_group_ids  = [module.security_group.sg_ids["ollama_sg"]]
   key_name            = module.bastion_instance.key_name
+  user_data           = "./scripts/ollama-setup.sh"
 }
-
-module "rds" {
-  source = "./modules/rds"
-  subnet_ids = module.network.database_subnet_ids
-  security_group_ids = [module.security_group.sg_ids["database_sg"]]
-  db_username = var.db_username
-  db_password = var.db_password
-}
-
-### switch to us-east-1
-### to do:  use secret manager for rds credentials
-###             number internal instances
-###             check if bastion and nat in different public subnets
-###             move data ami to general variables
-####################################################################
-### in future:  ssh switch to aws generated, and then ssm
-###             aurora db cluster
-###             s3 encryption
-###             asg metrics for scaling

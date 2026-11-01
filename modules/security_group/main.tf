@@ -54,10 +54,10 @@ locals {
     for sg_name, sg in var.security_groups : [
       for port in sg.tcp_ingress_ports : [
         for source_sg in sg.allowed_security_groups : {
-          sg_name    = sg_name
-          name       = sg.name
-          protocol   = "tcp"
-          port       = port
+          sg_name        = sg_name
+          name           = sg.name
+          protocol       = "tcp"
+          port           = port
           source_sg_name = source_sg
         }
       ]
@@ -67,10 +67,10 @@ locals {
     for sg_name, sg in var.security_groups : [
       for port in sg.udp_ingress_ports : [
         for source_sg in sg.allowed_security_groups : {
-          sg_name    = sg_name
-          name       = sg.name
-          protocol   = "udp"
-          port       = port
+          sg_name        = sg_name
+          name           = sg.name
+          protocol       = "udp"
+          port           = port
           source_sg_name = source_sg
         }
       ]
@@ -96,9 +96,9 @@ resource "aws_vpc_security_group_ingress_rule" "allowed_cidr" {
 resource "aws_vpc_security_group_ingress_rule" "allowed_sg" {
   for_each = local.sg_from_sg_rules_map
 
-  security_group_id = aws_security_group.this[each.value.sg_name].id
-  ip_protocol       = each.value.protocol
-  from_port         = each.value.port
-  to_port           = each.value.port
+  security_group_id            = aws_security_group.this[each.value.sg_name].id
+  ip_protocol                  = each.value.protocol
+  from_port                    = each.value.port
+  to_port                      = each.value.port
   referenced_security_group_id = aws_security_group.this[each.value.source_sg_name].id
 }
