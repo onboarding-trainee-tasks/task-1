@@ -5,5 +5,7 @@
 *.tfstate.*
 *.tfvars
 *.tfvars.json
+tfplan
+tfplan.*
 
 top_secret.txt

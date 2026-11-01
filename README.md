@@ -43,10 +43,18 @@ These resources/files must exist before `terraform init` or `terraform apply`:
    `s3://init-sql-script/db_init.sql`. SQL file is stored in this
    repository.
 
+
 5. **Local SSH key**
 
-   Terraform uploads the public key to AWS. The default path is Windows-specific:
-   `C:\Onboarding\.ssh\terraform-ssh-key.pub`. Override `ssh_key_path` if the key is stored somewhere else, and keep the matching private key locally.
+   Generate an SSH key pair locally:
+
+   ```bash
+   ssh-keygen -t ed25519 -f ~/.ssh/t1-bastion
+   ```
+
+   Terraform creates the EC2 Key Pair `t1-terraform-key` using
+   the public key from `~/.ssh/t1-bastion.pub`. The private key must remain on the local machine.
+
 
 ## How to run
 
